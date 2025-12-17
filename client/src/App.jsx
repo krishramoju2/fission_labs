@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { HashRouter, Routes, Route, Link } from 'react-router-dom';
 
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
@@ -36,7 +36,7 @@ export default function App() {
 
   return (
     <AppContext.Provider value={{ user, login, logout }}>
-      <BrowserRouter>
+      <HashRouter>
         <div className="min-h-screen bg-gray-50 flex flex-col">
           <NavBar />
           <main className="flex-grow container mx-auto px-4 py-6">
@@ -47,7 +47,7 @@ export default function App() {
             </Routes>
           </main>
         </div>
-      </BrowserRouter>
+      </HashRouter>
     </AppContext.Provider>
   );
 }
