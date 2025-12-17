@@ -7,7 +7,9 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const { login } = useContext(AppContext);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,16 +18,20 @@ export default function Login() {
       const res = await fetch(`${API_BASE}/api/auth/${isSignup ? 'signup' : 'login'}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
+
       const data = await res.json();
-      if (res.ok) {
-        login(data.token);
+
+      if (res.ok && data.token && data.user) {
+        // Save token and user info in context
+        login({ token: data.token, id: data.user._id, email: data.user.email });
         navigate('/');
       } else {
         alert(data.error || 'Something went wrong');
       }
     } catch (err) {
+      console.error(err);
       alert('Network error');
     } finally {
       setLoading(false);
@@ -38,6 +44,7 @@ export default function Login() {
         <h1 className="text-2xl font-bold mb-6 text-center">
           {isSignup ? 'Create Account' : 'Login'}
         </h1>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
@@ -54,17 +61,18 @@ export default function Login() {
             value={formData.password}
             onChange={e => setFormData({ ...formData, password: e.target.value })}
             required
-            minLength="6"
+            minLength={6}
           />
           <button
             type="submit"
             className="w-full bg-indigo-600 text-white py-3 rounded font-medium"
             disabled={loading}
           >
-            {loading ? '...' : isSignup ? 'Sign Up' : 'Login'}
+            {loading ? 'Loading...' : isSignup ? 'Sign Up' : 'Login'}
           </button>
         </form>
-        <p className="mt-4 text-center">
+
+        <p className="mt-4 text-center text-sm text-gray-600">
           {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
           <button
             type="button"
