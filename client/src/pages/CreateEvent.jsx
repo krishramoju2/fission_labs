@@ -15,23 +15,27 @@ export default function CreateEvent() {
   const { user } = useContext(AppContext);
   const navigate = useNavigate();
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 1_000_000) { // ~750KB max
+
+    if (file.size > 1_000_000) { // ~1MB max
       alert('Image too large (max 1MB).');
       return;
     }
+
     const reader = new FileReader();
-    reader.onload = () => {
-      setFormData({ ...formData, image: reader.result });
-    };
+    reader.onload = () => setFormData({ ...formData, image: reader.result });
     reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user) return alert('Please login first.');
     setLoading(true);
+
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE}/api/events`, {
@@ -42,6 +46,7 @@ export default function CreateEvent() {
         },
         body: JSON.stringify(formData)
       });
+
       if (res.ok) {
         navigate('/');
       } else {
@@ -49,6 +54,7 @@ export default function CreateEvent() {
         alert(err.error || 'Failed to create event');
       }
     } catch (err) {
+      console.error(err);
       alert('Network error');
     } finally {
       setLoading(false);
@@ -58,8 +64,9 @@ export default function CreateEvent() {
   if (!user) return <div className="text-center py-10">Please login first.</div>;
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto mt-10">
       <h1 className="text-2xl font-bold mb-6">Create Event</h1>
+
       <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-xl shadow">
         <input
           type="text"
@@ -69,6 +76,7 @@ export default function CreateEvent() {
           onChange={e => setFormData({ ...formData, title: e.target.value })}
           required
         />
+
         <textarea
           placeholder="Description"
           className="w-full p-3 border rounded"
@@ -76,6 +84,7 @@ export default function CreateEvent() {
           value={formData.description}
           onChange={e => setFormData({ ...formData, description: e.target.value })}
         />
+
         <div className="grid grid-cols-2 gap-4">
           <input
             type="datetime-local"
@@ -94,6 +103,7 @@ export default function CreateEvent() {
             required
           />
         </div>
+
         <input
           type="text"
           placeholder="Location"
@@ -101,6 +111,7 @@ export default function CreateEvent() {
           value={formData.location}
           onChange={e => setFormData({ ...formData, location: e.target.value })}
         />
+
         <div>
           <label className="block mb-2">Event Image (optional, max 1MB)</label>
           <input
@@ -117,6 +128,7 @@ export default function CreateEvent() {
             />
           )}
         </div>
+
         <button
           type="submit"
           className="w-full bg-indigo-600 text-white py-3 rounded font-medium"
