@@ -6,24 +6,40 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const { user } = useContext(AppContext);
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+  // Fetch events
   useEffect(() => {
     fetch(`${API_BASE}/api/events`)
       .then(res => res.json())
-      .then(setEvents)
+      .then(data => setEvents(data))
+      .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, []);
 
+  // RSVP join/leave
   const handleRSVP = async (eventId, action) => {
+    if (!user) return alert('Login first!');
     const token = localStorage.getItem('token');
     const method = action === 'join' ? 'POST' : 'DELETE';
-    const res = await fetch(`${API_BASE}/api/events/${eventId}/rsvp`, {
-      method,
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (res.ok) {
-      setEvents(events.map(e =>
-        e._id === eventId ? ({ ...e, rsvps: (e.rsvps || []).length + (action === 'join' ? 1 : -1) }) : e
-      ));
+
+    try {
+      const res = await fetch(`${API_BASE}/api/events/${eventId}/rsvp`, {
+        method,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        // Update local events
+        setEvents(events.map(e => {
+          if (e._id !== eventId) return e;
+          const updatedRsvps = action === 'join'
+            ? [...(e.rsvps || []), { user: user.id }]
+            : (e.rsvps || []).filter(r => r.user !== user.id);
+          return { ...e, rsvps: updatedRsvps };
+        }));
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -54,7 +70,7 @@ export default function Home() {
                   src={e.image}
                   alt={e.title}
                   className="w-full h-40 object-cover"
-                  onError={(e) => e.target.style.display = 'none'}
+                  onError={ev => ev.target.style.display = 'none'}
                 />
               )}
               <div className="p-5">
@@ -65,11 +81,16 @@ export default function Home() {
                 <p className="text-gray-500 text-sm mt-2 line-clamp-2">{e.description}</p>
                 <div className="mt-4 flex justify-between items-center">
                   <span className="text-sm bg-gray-100 px-2 py-1 rounded">
-                    🎟️ {e.rsvps?.length || 0}/{e.capacity}
+                    🎟️ {e.rsvps?.length || 0}/{e.capacity || '∞'}
                   </span>
                   {user ? (
                     <button
-                      onClick={() => handleRSVP(e._id, e.rsvps?.some(r => r.user === user.id) ? 'leave' : 'join')}
+                      onClick={() =>
+                        handleRSVP(
+                          e._id,
+                          e.rsvps?.some(r => r.user === user.id) ? 'leave' : 'join'
+                        )
+                      }
                       className={`px-3 py-1 rounded text-sm ${
                         e.rsvps?.some(r => r.user === user.id)
                           ? 'bg-gray-200 text-gray-700'
