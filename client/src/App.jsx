@@ -5,17 +5,22 @@ import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 import CreateEvent from './pages/CreateEvent.jsx';
 
+// Context
 export const AppContext = React.createContext();
 
 export default function App() {
   const [user, setUser] = useState(null);
 
+  // Check token on mount
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
-      }).catch(() => logout());
+      })
+        .then(res => res.json())
+        .then(data => setUser(data))
+        .catch(() => logout());
     }
   }, []);
 
@@ -30,8 +35,8 @@ export default function App() {
   };
 
   return (
-    <BrowserRouter>
-      <AppContext.Provider value={{ user, login, logout }}>
+    <AppContext.Provider value={{ user, login, logout }}>
+      <BrowserRouter>
         <div className="min-h-screen bg-gray-50 flex flex-col">
           <NavBar />
           <main className="flex-grow container mx-auto px-4 py-6">
@@ -42,11 +47,12 @@ export default function App() {
             </Routes>
           </main>
         </div>
-      </AppContext.Provider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </AppContext.Provider>
   );
 }
 
+// Navbar
 const NavBar = () => {
   const { user, logout } = React.useContext(AppContext);
 
