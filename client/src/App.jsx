@@ -46,7 +46,7 @@ export default function App() {
   );
 }
 
-const AppContext = React.createContext();
+export const AppContext = React.createContext();
 
 const NavBar = () => {
   const { user, logout } = React.useContext(AppContext);
