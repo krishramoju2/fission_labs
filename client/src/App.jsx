@@ -4,7 +4,7 @@ import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 import CreateEvent from './pages/CreateEvent.jsx';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+import { API_BASE } from '../config';
 
 export default function App() {
   const [user, setUser] = useState(null);
