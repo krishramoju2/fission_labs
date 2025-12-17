@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'; // 🔑 import React here
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 import CreateEvent from './pages/CreateEvent.jsx';
 
-import { API_BASE } from '../config';
+export const AppContext = React.createContext();
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -12,7 +13,7 @@ export default function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      fetch(`${API_BASE}/api/auth/me`, {
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       }).catch(() => logout());
     }
@@ -46,10 +47,9 @@ export default function App() {
   );
 }
 
-export const AppContext = React.createContext();
-
 const NavBar = () => {
   const { user, logout } = React.useContext(AppContext);
+
   return (
     <nav className="bg-indigo-600 text-white p-4 shadow">
       <div className="container mx-auto flex justify-between items-center">
@@ -58,11 +58,17 @@ const NavBar = () => {
         </Link>
         <div>
           {user ? (
-            <button onClick={logout} className="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium">
+            <button
+              onClick={logout}
+              className="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium"
+            >
               Logout
             </button>
           ) : (
-            <Link to="/login" className="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium">
+            <Link
+              to="/login"
+              className="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium"
+            >
               Login
             </Link>
           )}
